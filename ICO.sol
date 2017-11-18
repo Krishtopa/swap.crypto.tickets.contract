@@ -144,7 +144,7 @@ contract CryptoTicketsICO {
 
     // Style: Caps should not be used for vars, only for consts!
     uint public Rate_Eth = 298; // Rate USD per ETH
-    uint public Token_Price = 25 * Rate_Eth; // cpt per ETH
+    uint public Token_Price = 25 * Rate_Eth; // tkt per ETH
     uint public SoldNoBonuses = 0; //Sold tokens without bonuses
 
     mapping(address => bool) swapped;
@@ -152,10 +152,10 @@ contract CryptoTicketsICO {
     event LogStartICO();
     event LogPauseICO();
     event LogFinishICO(address bountyFund, address advisorsFund, address itdFund, address storageFund);
-    event LogBuyForInvestor(address investor, uint cptValue, string txHash);
-    event LogSwapToken(address investor, uint cptValue);
+    event LogBuyForInvestor(address investor, uint tokenValue, string txHash);
+    event LogSwapToken(address investor, uint tokenValue);
 
-    CPT public cpt = new CPT(this);
+    newTKT public token = new newTKT(this);
     TKT public tkt;
 
     address public Company;
@@ -224,16 +224,16 @@ contract CryptoTicketsICO {
 
        require(statusICO == StatusICO.Started);
 
-       uint alreadyMinted = cpt.totalSupply(); //=PublicICO+PrivateOffer
+       uint alreadyMinted = token.totalSupply(); //=PublicICO+PrivateOffer
        uint totalAmount = alreadyMinted * 1000 / icoAndPOfPart;
 
 
-       cpt.mint(BountyFund, bountyPart * totalAmount / 100); // 2% for Bounty
-       cpt.mint(AdvisorsFund, advisorsPart * totalAmount / 1000); // 3.5% for Advisors
-       cpt.mint(ItdFund, itdPart * totalAmount / 100); // 15% for Ticketscloud ltd
-       cpt.mint(StorageFund, storagePart * totalAmount / 100); // 3% for Storage
+       token.mint(BountyFund, bountyPart * totalAmount / 100); // 2% for Bounty
+       token.mint(AdvisorsFund, advisorsPart * totalAmount / 1000); // 3.5% for Advisors
+       token.mint(ItdFund, itdPart * totalAmount / 100); // 15% for Ticketscloud ltd
+       token.mint(StorageFund, storagePart * totalAmount / 100); // 3% for Storage
 
-       cpt.defrost();
+       token.defrost();
 
        statusICO = StatusICO.Finished;
        LogFinishICO(BountyFund, AdvisorsFund, ItdFund, StorageFund);
@@ -247,9 +247,9 @@ contract CryptoTicketsICO {
 
 // function for buying tokens to investors who paid in other cryptos
 
-    function buyForInvestor(address _investor, uint _cptValue, string _txHash) external controllersOnly {
-       buy(_investor, _cptValue);
-       LogBuyForInvestor(_investor, _cptValue, _txHash);
+    function buyForInvestor(address _investor, uint _tokenValue, string _txHash) external controllersOnly {
+       buy(_investor, _tokenValue);
+       LogBuyForInvestor(_investor, _tokenValue, _txHash);
     }
 
 //function for buying tokens for investors
@@ -260,19 +260,19 @@ contract CryptoTicketsICO {
          uint tktTokens = tkt.balanceOf(_investor);
          require(tktTokens > 0);
          swapped[_investor] = true;
-         cpt.mint(_investor, tktTokens);
+         token.mint(_investor, tktTokens);
 
          LogSwapToken(_investor, tktTokens);
     }
 // internal function for buying tokens
 
-    function buy(address _investor, uint _cptValue) internal {
+    function buy(address _investor, uint _tokenValue) internal {
        require(statusICO == StatusICO.Started);
-       require(_cptValue > 0);
-       require(SoldNoBonuses + _cptValue <= Tokens_For_Sale);
-       cpt.mint(_investor, _cptValue);
+       require(_tokenValue > 0);
+       require(SoldNoBonuses + _tokenValue <= Tokens_For_Sale);
+       token.mint(_investor, _tokenValue);
 
-       SoldNoBonuses = SoldNoBonuses.add(_cptValue);
+       SoldNoBonuses = SoldNoBonuses.add(_tokenValue);
     }
 
 
@@ -287,11 +287,11 @@ contract CryptoTicketsICO {
 
 }
 
-contract CPT  is ERC20 {
+contract newTKT  is ERC20 {
     using SafeMath for uint;
 
     string public name = "CryptoTickets COIN";
-    string public symbol = "cpt";
+    string public symbol = "TKT";
     uint public decimals = 18;
 
     address public ico;
@@ -302,7 +302,7 @@ contract CPT  is ERC20 {
 
     modifier icoOnly { require(msg.sender == ico); _; }
 
-    function CPT(address _ico) {
+    function newTKT(address _ico) {
        ico = _ico;
     }
 
