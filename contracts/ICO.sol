@@ -155,7 +155,7 @@ contract CryptoTicketsICO {
     event LogBuyForInvestor(address investor, uint tokenValue, string txHash);
     event LogSwapToken(address investor, uint tokenValue);
 
-    newTKT public token = new newTKT(this);
+    TKT public token = new TKT(this);
     TKT public tkt;
 
     address public Company;
@@ -287,84 +287,4 @@ contract CryptoTicketsICO {
 
 }
 
-contract newTKT  is ERC20 {
-    using SafeMath for uint;
 
-    string public name = "CryptoTickets COIN";
-    string public symbol = "TKT";
-    uint public decimals = 18;
-
-    address public ico;
-
-    event Burn(address indexed from, uint256 value);
-
-    bool public tokensAreFrozen = true;
-
-    modifier icoOnly { require(msg.sender == ico); _; }
-
-    function newTKT(address _ico) {
-       ico = _ico;
-    }
-
-
-    function mint(address _holder, uint _value) external icoOnly {
-       require(_value != 0);
-       balances[_holder] = balances[_holder].add(_value);
-       totalSupply = totalSupply.add(_value);
-       Transfer(0x0, _holder, _value);
-    }
-
-
-    function defrost() external icoOnly {
-       tokensAreFrozen = false;
-    }
-
-    function burn(uint256 _value) {
-       require(!tokensAreFrozen);
-       balances[msg.sender] = balances[msg.sender].sub(_value);
-       totalSupply = totalSupply.sub(_value);
-       Burn(msg.sender, _value);
-    }
-
-
-    function balanceOf(address _owner) constant returns (uint256) {
-         return balances[_owner];
-    }
-
-
-    function transfer(address _to, uint256 _amount) returns (bool) {
-        require(!tokensAreFrozen);
-        balances[msg.sender] = balances[msg.sender].sub(_amount);
-        balances[_to] = balances[_to].add(_amount);
-        Transfer(msg.sender, _to, _amount);
-        return true;
-    }
-
-
-    function transferFrom(address _from, address _to, uint256 _amount) returns (bool) {
-        require(!tokensAreFrozen);
-        balances[_from] = balances[_from].sub(_amount);
-        allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_amount);
-        balances[_to] = balances[_to].add(_amount);
-        Transfer(_from, _to, _amount);
-        return true;
-     }
-
-
-    function approve(address _spender, uint256 _amount) returns (bool) {
-        // To change the approve amount you first have to reduce the addresses`
-        //  allowance to zero by calling `approve(_spender, 0)` if it is not
-        //  already 0 to mitigate the race condition described here:
-        //  https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
-        require((_amount == 0) || (allowed[msg.sender][_spender] == 0));
-
-        allowed[msg.sender][_spender] = _amount;
-        Approval(msg.sender, _spender, _amount);
-        return true;
-    }
-
-
-    function allowance(address _owner, address _spender) constant returns (uint256) {
-        return allowed[_owner][_spender];
-    }
-}
